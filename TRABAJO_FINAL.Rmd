@@ -1,0 +1,494 @@
+---
+title: "¿Qué explica la mortalidad infantil?"
+author: "Marco Saravia"
+date: "24 de junio de 2022"
+output:
+  rmdformats::readthedown:
+    code_folding: show
+  html_document:
+    df_print: paged
+  toc_depth: 5
+  toc: yes
+  lightbox: yes
+  toc_float:
+    collapsed: no
+    smooth_scrool: yes
+  thumbnails: yes
+  self_contained: yes
+---
+
+```{r setup, include=FALSE, message=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# INTRODUCCIÓN
+
+El índice de mortalidad infantil se mide de acuerdo una diversidad de factores que se encargan de determinar el número de muertes de niños menores de 5 años divido entre el número total de nacimientos en un esapcio determinado. De acuerdo a lo que plantea Aguirre (2009), la mortalidad infantil puede deber su causalidad a  las afecciones originadas en el periodo perinatal (AP), anomalías congénitas (AC), infecciones respiratorias agudas (IRA), enfermedades diarreicas agudas (EDA), entre otras. Por lo cual, llama la atención considerar aquellos elementos que permitan evidenciar lo propuesto en la literatura, de tal modo que se consideren cuáles son los factores determinantes en la vida diaria y en la salud que influyan en los cambios del índice de mortalidad.  
+
+En ese sentido, se emplearán los datos obtenidos a partir de la base de datos del Banco Mundial en relación a indicadores que toman en cosnideración todos los países a nivel mundial. Las variables que se emplearán en la presente investigación son: la tasa de mortalidad, bebés (por cada 1.000 nacidos vivos); la incidencia de tuberculosis (por cada 100.000 personas); y, "People with basic handwashing facilities including soap and water (% of population)". Puesto que, las variables por un lado, permiten tomar en cuenta elementos de la cotidianidad de los ciudadanos (as) a nivel mundial y, por otro lado, enfermedadesd e afectacción grande a la salud pública, los cuales se encuentran estrechamente relacionados a la mortalidad infantil. 
+
+Primero, la tasa de mortalidad, bebés, el cuals e refiere a la cantidad de infantes que mueren antes de llegar al año de vida, por cada 1000 nacidos vivos, en un año determinado. Segundo, la incidencia de tuberculosis, el cual representa la cantidad estimada de nuevos casos de tuberculosis pulmonar, de frotis positivo y extrapulmonar.Y, tercero, el porcentaje de personas viviendo en househols que tienen acceso al servicio de lavado de manos con facilidad de agua potable y jabón. Este último indicador toma en consdieración, también, la facilidad de las personas para arreglar y ajustar alos probelmas técncios como atoramientos y contaminación de agua que se incluyen en el servicio de agua. Además,dentro de la categoría de jabón se incluyen el jabón en barra, líquido, detergente, pero deja de lado el acite, sal, entre otros productos de lavado de manos. 
+
+Para poder desarrollar el correcto análisis el trabajo constará de dos partes. En la primera, se realizará un análisis de regresión los modelos creados en base a los vectores que se han mencionado, de tal forma que sea posible determinar si existe algún tipo de relación de predicción y dependencia entre las variables de interés, y si es así, cuál es el tipo de relación. En la segunda, se añade una segunda base de datos dentro de la cual se encuentran cuatro variables extraídas, también, del Banco Mundial. Puesto que, se realizarán dos análisis de agrupación de datos. Se emplea, por un lado, la clusterización de los datos y, por otro lado, el análisis factorial.
+
+Es así que se plantea, a partir de la información presentada, determinar la estructura de los datos presentados en favor de establecer, en primer lugar, cuáles son los factores que predicen el comportamiento de la mortaldiad infantil en el mundo y, en segundo lugar, establecer de qué forma se agrupan los datos en razón de ser calsificados dentro de categorías o dentro de la creación de índices. 
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+library(rio)
+library(Rmisc)
+library (stargazer)
+library(moments)
+library(DescTools)
+library(BBmisc)
+library(cluster)
+library(factoextra)
+library(qpcR)
+library(polycor)
+library(ggcorrplot)
+library(magrittr)
+library(psych)
+library(matrixcalc)
+library(lavaan)
+library(ggthemes)
+
+link="https://github.com/marcosaravia13/TRABAJO-FINAL/blob/d3b2c2e988e3e9c766725528493b17971bb66aff/DATA1.xlsx?raw=true"
+data=import(link)
+```
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+data$handwashing=as.numeric(data$handwashing)
+data$mortality_rate=as.numeric(data$mortality_rate)
+data$incidence_tuberculosis=as.numeric(data$incidence_tuberculosis)
+data = data[complete.cases(data$mortality_rate),]
+data = data[complete.cases(data$handwashing),]
+data = data[complete.cases(data$incidence_tuberculosis),]
+```
+
+# ANÁLISIS DE REGRESIÓN
+
+Para el proceso de análisis de regresión, se tomó en consideración realziar tres diferentes modelos que invlocuren a las tres variables empleadas en el presente trabajo: Mortalidad infantil, número de habitantes con acceso al lavado de manos y la incidendia de tuberculosis por país. Para el análisis de regresión se han tomado en cuenta dos modelos de regresión simple que evalúe la relación explicativa entre las variables en pares y una regresión múltiple que tome en cuenta la totalidad de las variables. Asimismo, para los tres casos se ha tomado en cuenta como variable independiente a la tasa de mortalidad a nivel mundial. 
+
+El primer modelo de regresión simple evalúa la relaciónb entre la tasa de mortalidad y el acceso de las personas al servicio de lavado de manos. En el modelo encotnraremos que el p-value fue menor a 0.05, por lo que se puede decir que no se puede negar que el modelo sea falso. Por lo tanto, no se rechaza la viabilidad del mismo y hay una relación de dependencia. Del mismo modo, se debe considerar que el R2 del modelo es de 0.5622.
+
+En el segundo modelo, el cual toma en cuenta la relación entre la tasa de mortalidad y la incidencia de tuberculoisis, se observó que el p-value resulta ser, del mismo modo, es menor a 0.05, por lo que se puede decir que no se puede negar que el modelo sea falso. Por lo tanto, no se rechaza la viabilidad del mismo y hay una relación de dependencia. Del mismo modo, se debe considerar que el R2 del modelo es de 0.1884. Sin embargo, es por ello que este modelo resulta ser menos explicativo que el primero. 
+
+No obstante, cuando se observa el tercer modelo, el cual involucra la totalidad de las variables, veremos que el pvalue es menor a 0.05 lo que impide rechazar la viabilidad del modelo, al mismo tiempo que muestra un rsquared maypr a los demás presentados (0.6) de forma positiva. Es decir, la relación del modelo es direta. Ello, además, se comprueba al observar la tabla anova (tabla 1). 
+
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+Modelo1=formula(data$mortality_rate~data$handwashing)
+reg1=lm(Modelo1,data=data)
+modelo2=formula(data$mortality_rate~data$incidence_tuberculosis)
+reg2=lm(modelo2,data=data)
+```
+
+**RELACIÓN ENTRE EL ÍNDICE DE MORTALIDAD INFANTIL (DEPENDIENTE) FRENTE A LA INCIDENCIA DE TUBERCULOSIS Y ACCESO AL LAVADO DE MANOS**
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+modelo3=formula(data$mortality_rate~data$handwashing+data$incidence_tuberculosis)
+reg3=lm(modelo3,data=data)
+summary(reg3)
+```
+
+```{r message=FALSE, echo=FALSE}
+stargazer(reg3,type = "text",intercept.bottom = FALSE)
+```
+
+
+## COMPARACIÓN DE LOS MODELOS
+
+A partir de la información presentada, se evidencia que el mejor de los modelos presentados es el modelo de regresión MÚLTIPLE que involucra todas las variables. En esta se muestra que al pasar de un modelo a otro no existe un cambio significativo, de tal modo que se rechaza la hipótesis de igualdad de modelos. De este modo, se considera que el mejor modelo que define el tipo de relación entre las variables presentadas es el tercer modelo de regresión múltiple que agrupa a las tres variables involucradas. 
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+stargazer(reg1,reg2,reg3, type = "text")
+```
+
+```{r message=FALSE, echo=FALSE}
+tanova=anova(reg1, reg2, reg3)
+stargazer(tanova,type = "text", summary = F, title = "Tabla 1")
+```
+
+** Anexo 1: Modelo de regresión entre el índice de mortaldiad y la incidencia de tuberculosis. 
+
+** Anexo 2: Modelo de regresión entre el índice de mortalidad y el acceso al servicio de lavado de manos.
+
+** Anexo 3: Pruebas de diagnósticos de la regresión. 
+
+
+# ANÁLISIS DE CONGLOMERADOS
+
+Para poder realizar el análisis de conglomerados, así como el análisis factorial, se ha trabajado, también, con la base de datos número 2. En ese sentido, el presenta análisis se muestra a partir de las siguientes siete variables a nivel mundial:
+
+1.Índice de mortalidad
+
+2.Acceso al servicio de lavado de manos
+
+3.Incidencia de tuberculosis
+
+4.Esperanza de vida al nacer
+
+5.Acceso a los servicios de agua potable
+
+6.Flujos financieros nacionales
+
+7.Incidencia de anemia en niños y niñas
+
+Es evidente que por la propia naturaleza de la investigación, la distribución de las variables es independiente en cada una pues el insicador de medición en cada una de ellas ha sido trabajado de una manera diferente, por lo que es conveniente estandarizar las variables y realizar una mejor clusterización. 
+Una vez que se han estandarizado, es posible trbajar la clusterización, pues se ha determinado un valor estánjdar de medición para todas las variables. Es importante notar, al mismo tiempo que, a partir de una examinación de las correlaciones dentro de la data presenta, se hace evidente la necesidad se establecer una monotonía en las variables, sin embargo, esta solo se realiza a la de handwashing, en tanto es mpas conveniente por los posteriores efectos del proceso. 
+
+** Anexo 4: Cuadro de correlaciones en anexos. 
+
+** Anexo 5: Boxplot de las variables a emplear no estandarizado
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+link2="https://raw.githubusercontent.com/marcosaravia13/TRABAJO-FINAL/main/data_claus.csv"
+data_clus=import(link2)
+str(data_clus)
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+boxplot(data_clus[,-1])
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+boxplot(normalize(data_clus[,-1],method='standardize'))
+data_clus[,-1]=normalize(data_clus[,-1],method='standardize')
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+cor(data_clus[,-1])
+data_clus$handwashing=-1*data_clus$handwashing
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+row.names(data_clus)=data_clus$country
+data_clus=data_clus[,-1]
+```
+
+## CLUSTERIZACIÓN
+
+Para poder realizar el procesod e clusterización es necesario, dentro de un marco confirmativo, tomar en cuenta las siluetas presentadas a partir de los gráficos, los cuales muestran como  mjeor opción que la clusterización sería mejor reaziada a aprtir de 2 clusters. A su vez, se evidenció que a pesar de que la diferencia entre los modelos no sea significativa, pues fue de 0.1, el modelo DIANA no presenta elemntos no clusterizables, a diferencia de los modelos de PAM Y AGNES, que presentaban 2 elementos y 1 respectivamente. De acuerdo a ello, se concluye que la mejor opción a utilizar corresponde a la clusterización por jerarquía divisible, es decir el método DIANA. 
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+g.dist = daisy(data_clus, metric="gower")
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+fviz_nbclust(data_clus, hcut,diss=g.dist,method ="gap_stat",k.max =10,verbose =F,hc_func ="diana")
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+###pam
+set.seed(123)
+grupos=2
+res.pam=pam(g.dist,k = grupos,cluster.only =F)
+data_clus$pam=res.pam$cluster
+
+###agnes
+res.agnes<- hcut(g.dist, grupos,hc_func='agnes',hc_method ="ward.D")
+data_clus$agnes=res.agnes$cluster
+
+### diana
+res.diana <- hcut(g.dist, k = grupos,hc_func='diana')
+data_clus$diana=res.diana$cluster
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+fviz_silhouette(res.diana)
+```
+
+En ese sentido, se observa en la siguiente proyección, los dos clusters seleccionados. Y, posteriormente, se observa el dendograma que permite visuizar las distnacias enntre los elementos de ambos clsuters. A partir de los cuales, es poisble evidenciar que los elementos que componen las variables de la investigación se clasifican en 2 clusters, es decir, existen dos grupos de países que presentan caracter´siticas similares que los clasifican en torno a 2 grupos mayoritarios.Asimismo, se debe consdirar que la te´cnica de clusterización empleada no dejado casos de países sin clusterizar. De tal modo que todos tienen pertenencia a un grupo. 
+
+```{r message=FALSE, echo=FALSE}
+proyeccion = cmdscale(g.dist, k=2,add =T)
+data_clus$dim1 <- proyeccion$points[,1]
+data_clus$dim2 <- proyeccion$points[,2]
+base= ggplot(data_clus,aes(x=dim1, y=dim2,label=row.names(data_clus)))
+base + geom_text(size=2, aes(color=as.factor(diana))) + labs(title ="DIANA") + scale_color_fivethirtyeight() +
+theme_fivethirtyeight()+theme(legend.position = "none")
+```
+
+**DENDOGRAMA DE LA CLUSTERIZACIÓN HECHA A PARTIR DEL MÉTODO JERÁRQUICO DIVISIBLE (DIANA)**
+
+```{r message=FALSE, echo=FALSE}
+fviz_dend(res.diana, cex =0.7, horiz =T)
+```
+
+** Anexo 6: Gráficos de propuesta de número de clusters de Diana, Pam y Agnes
+
+** Anexo 7: silueta del modelo de Agnes y Pam
+
+** Anexo 8: Proyección de los modelos de clusterización de Agnes y Pam.
+
+** Anexo 9: tabla de casos mal clusterizados
+
+# ANÁLISIS FACTORIAL
+
+## ANÁLISIS FACTORIAL EXPLORATORIO
+
+El análisis factorial explratorio que se ha realizado parte desde la exploración de correlaciones que se observa en el gráfico 1. De acuerdo a lo que se presenta, es posible mencionar que existe cierto grado de correlación entre seis de las siete variables que se han considerado, pues en todos, a exepción del indicador de flujos financieros (financial_flows) se muestra un alto de grado de correalción, ya se adirecto o inverso (observar leyenda). No obstante, con respecto a los flujos financieros, cabe indicar que, por la propia naturaleza del indicador, se muestra que no existe correlación entre este y los demás. Lo cual da indicios de que todas las demás variables podrían aportar a la construcción d eunindicador pero la que contiene flujos financieros, no. Ello, además, se corrobara cuando se realizan las matrices de identidad y singularidad, las cuales dieron resultados negativos. Por lo cual, se presenta otro elemento para poder afirmar que el factor a presentar será viable. 
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+data_af=import(link2)
+row.names(data_af)=data_af$country
+data_af=data_af[ ,-1]
+```
+
+**Gráfico 1: TABLA DE EXPLORACIÓN DE CORRELACIONES**
+
+```{r message=FALSE, echo=FALSE}
+corMatrix=polycor::hetcor(data_af)$correlations
+ggcorrplot(corMatrix)
+```
+
+Además, el análisis explroatorio concibe la presencia de un solo factor  partir del cual dimensionar las siete variables de interés. Ello, al mismo tiempo, se deja ver en el gráfico 2, el cual muestra el el grado de variabilidad entre las variables, teniendo todos un grado de aporte hacia la creación delm indicador, mayor a 0.8, con exepción de la variable que muestra el indicador de flujos financieros. Es asíq eu se debe destacar que tal vairable no resulta ser de interés ni influencia dentro del marco de la creación de un vector. Lo cual, al mismo tiempo, se refleja cuando se observa que el grado de aporte de esta variable al indicador nuevo es de 0.00014, mientras que todas las demás comprenden valores mayores a 1. Por lo tanto, se deriva en que la creación de un solo vector es posible a partir de seis de las siete variables a cosniderar por la similitud y correlación de las mismas. 
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+psych::KMO(corMatrix ) 
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+#MATRIZ DE IDENTIDAD
+cortest.bartlett(corMatrix,n=nrow(data_af))$p.value>0.05
+#MATRIZ SINGULAR
+is.singular.matrix(corMatrix)
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+fa.parallel(data_af,fm = 'ML', fa = 'fa',correct = T)
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+#install.packages("GPArotation")
+library(GPArotation)
+resfa <- fa(data_af,
+            nfactors = 1,
+            cor = 'mixed',
+            rotate = "varimax",
+            fm="minres")
+print(resfa$loadings)
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+print(resfa$loadings,cutoff = 0.5)
+```
+
+**GRÁFICO 2: ESTRUCTURA DE LOS VECTORES**
+
+```{r message=FALSE, echo=FALSE}
+fa.diagram(resfa)
+```
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+sort(resfa$communality)
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+sort(resfa$complexity)
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+as.data.frame(resfa$scores)%>%head()
+```
+
+** ANEXO 10: Pruebas de matriz de identidad y matriz singular
+
+** ANEXO 11: Nivel de variación de las variables consideradaas
+
+** ANEXO 12: Nivel de aportación de la variables de interés
+
+## ANÁLISIS FACTORIAL CONFIRMATORIO
+
+A partir de lo presentado, es necesario realizar la comprobación necesaria, de tal modo que se pueda confirmar la viabilidad del indicador ofrecido en el análisis exploratorio. Por tal motivo, se deben realziar una serie de pruebas que evalúen el desempeño del indicador de manera conjunta. En ese sentido, se evalúa, en primer la prueba chisquare, la cual ofrece un resultado negativo, pues el pvalue que se presenta (9.316829e-06) alude a un rechazo de la hipótesi que presenta la viabilidad del modelo. En segundo lugar, se evalúa el índice de Tucker Lewis, el cual muestra, también, un resultado no favorable para el modelo presentado, pues el resultado es menor a 0.9. Y, por último, con respecto al error cuadrático se muestra un coeficiente menor a 0.5. Por lo cual, se muestra que si bien el modelo puede llegar a agrupar las variables dentro de un solo factor, este aún tiene errores que deben ser trabajados para optimizar los resultados. 
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+model <- ' CONCEPTO  =~ mortality_rate + handwashing + incidence_tuberculosis + life_expectancy_at_birth + water_services + financial_flows + children_anemia'
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+data_norm=as.data.frame(scale(data_af))
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+cfa_fit <- cfa(model, data_norm, 
+           std.lv=TRUE,  
+           missing="fiml")
+```
+```{r message=FALSE, echo=FALSE, include=FALSE}
+allParamCFA=parameterEstimates(cfa_fit,standardized = T)
+allFitCFA=as.list(fitMeasures(cfa_fit))
+```
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+allParamCFA[allParamCFA$op=="=~",]
+```
+
+### PRUEBAS DE CONFIRMACIÓN
+
+```{r message=FALSE, echo=FALSE, include=FALSE}
+#CHISQUARE
+allFitCFA[c("chisq", "df", "pvalue")] # pvalue>0.05
+#TUCKER LEWI
+allFitCFA$tli # > 0.90
+#RAIZ DEL ERROR
+allFitCFA[c('rmsea.ci.lower','rmsea' ,'rmsea.ci.upper')] # 0.05 en el Int de Conf
+```
+
+
+** ANEXO 13: test de correlaciónb de las variables de forma indiviual
+
+** ANEXO 14: Test de chisquare
+
+** ANEXO 15: Test del índice de Tucker Lewi
+
+** ANEXO 16: Test de raíz del error cuadrático
+
+# CONCLUSIONES
+
+A partir de la información presentada es preciso concluir, en primer lugar, que los modelos de regresión planteadas permiten afirmar la existencia de la relación entre las variables independientes (incidencia de tuberculosis y acceso al lavado de manos). De tal modo que se evidencia que, aunque dentro de una relación medianamente fuerte, los elementos considerados influyen en el comportamiento de la tasa de mortalidad al ser consideradas todas en un solo modelo 
+
+En segundo lugar, que las variables consideradas clasifican los elementos a partir de dos grupos dentro de una jerarquización divisible, es decir, existen dos grupos que presentan características similiares demostradas en el proceso de clusterización, a través de los cuales los países del mundo de clasifican dentro de las categorías 1 o 2. Lo cual, a su vez, significa, que los elementos considerados no presentan mayores diferencias para ser clasificados dentro de más grupos. 
+En tercer lugar, que cada una de la variables consideradas establecen, a nivel exploratorio, la creación de un factor que agrupa las variables que toma como excepción al indicador de flujos financieros por el poco aporte que presenta y la poca similitud frente a las demás. Pero, el mismo indicador, debe, aún, ajustarse y tomar como base otras variables, puesto que, a través del análisis confirmatorio, se evidencian las fallas del modelo en cuanto a su viabilidad. 
+
+Sin embargo, es importatne señalar que la presenta investigación presesnta una serie de limitaciones que obstruyen el trabajo presentado. Por lo cual, se debe tomar en cuenta la aleteoridad con la cual se escogieron las variables a trabajar, al mismo tiempo que la ausencia de países dentro del los modelos de regresión y clusterización, pues, en tanto se eliminan ciertos valores en favor del desarrollo del trabajo, se dejan de lado a aquellos países que pueden resultar influyentes dentro de la investigación. Por ello, resulta importante continuar con la indagación acerca de lo que aquí se propone, para, posteriormente, llegar a cubrir los vacíos que en este trabajo se dejan. 
+
+# ANEXOS
+
+#### ANEXO 1: MODELO DE REGRESIÓN  
+```{r message=FALSE, echo=FALSE}
+Modelo1=formula(data$mortality_rate~data$handwashing)
+reg1=lm(Modelo1,data=data)
+summary(reg1)
+```
+
+#### ANEXO 2: MODELO DE REGRESIÓN 
+```{r message=FALSE, echo=FALSE}
+modelo2=formula(data$mortality_rate~data$incidence_tuberculosis)
+reg2=lm(modelo2,data=data)
+summary(reg2)
+```
+
+#### ANEXO 3: GRÁFICOS PARA LA COMPROBACIÓN DEL MODELO CREADO:
+
+**LINEALIDAD**
+
+```{r message=FALSE, echo=FALSE}
+plot(reg3, 1)
+```
+**HOMOCEDASTICIDAD**
+```{r message=FALSE, echo=FALSE}
+plot(reg3, 3)
+```
+
+**NORMALIDAD DE LOS RESIDUOS**
+```{r message=FALSE, echo=FALSE}
+plot(reg3,2)
+```
+
+```{r message=FALSE, echo=FALSE}
+shapiro.test(reg3$residuals)
+```
+
+**CASOS INFLUYENTES**
+```{r message=FALSE, echo=FALSE}
+plot(reg3, 5)
+```
+
+**MULTICOLINEALIDAD**
+
+```{r}
+VIF(reg3)
+```
+
+#### ANEXO 4: Tabla de Correlaciones
+```{r message=FALSE, echo=FALSE}
+cor(data_clus)
+```
+
+#### Anexo 5: SELECCIÓN DE CULSTERIZACIÓN POR PAM, AGNES Y  DIANA, RESPEDCTIVAMENTE:
+
+```{r message=FALSE, echo=FALSE}
+fviz_nbclust(data_clus, pam,diss=g.dist,method ="gap_stat",k.max =10,verbose =F)
+fviz_nbclust(data_clus, hcut,diss=g.dist,method ="gap_stat",k.max =10,verbose =F,hc_func ="agnes")
+fviz_nbclust(data_clus, hcut,diss=g.dist,method ="gap_stat",k.max =10,verbose =F,hc_func ="diana")
+```
+
+#### ANEXO 6: Siluetas de los modelos de AGNES, DIANA Y PAM.
+
+```{r message=FALSE, echo=FALSE}
+fviz_silhouette(res.pam)
+fviz_silhouette(res.agnes)
+fviz_silhouette(res.diana)
+```
+#### ANEXO 8: PROYECCIÓN DE LA CLUSTERIZACIÓN A PARTIR DE LOS MODELOS DE AGNES Y PAM
+
+**MODELO DE AGNES** 
+```{r message=FALSE, echo=FALSE}
+proyeccion = cmdscale(g.dist, k=2,add =T)
+data_clus$dim1 <- proyeccion$points[,1]
+data_clus$dim2 <- proyeccion$points[,2]
+base= ggplot(data_clus,aes(x=dim1, y=dim2,label=row.names(data_clus)))
+base + geom_text(size=2, aes(color=as.factor(agnes))) + labs(title ="AGNES") + scale_color_fivethirtyeight() +
+theme_fivethirtyeight()+theme(legend.position = "none")
+```
+**MODELO DE PAM**
+```{r message=FALSE, echo=FALSE}
+proyeccion = cmdscale(g.dist, k=2,add =T)
+data_clus$dim1 <- proyeccion$points[,1]
+data_clus$dim2 <- proyeccion$points[,2]
+base= ggplot(data_clus,aes(x=dim1, y=dim2,label=row.names(data_clus)))
+base + geom_text(size=2, aes(color=as.factor(pam))) + labs(title ="PAM") + scale_color_fivethirtyeight() +
+theme_fivethirtyeight()+theme(legend.position = "none")
+```
+
+#### ANEXO 9: TABLA DE LOS CASOS MAL CLAUSTERIZADOS
+```{r message=FALSE, echo=FALSE}
+silPAM=data.frame(res.pam$silinfo$widths)
+silPAM$country=row.names(silPAM)
+poorPAM=silPAM[silPAM$sil_width<0,'country']%>%sort()
+
+silAGNES=data.frame(res.agnes$silinfo$widths)
+silAGNES$country=row.names(silAGNES)
+poorAGNES=silAGNES[silAGNES$sil_width<0,'country']%>%sort()
+
+silDIANA=data.frame(res.diana$silinfo$widths)
+silDIANA$country=row.names(silDIANA)
+poorDIANA=silDIANA[silDIANA$sil_width<0,'country']%>%sort()
+
+mal_Clus=as.data.frame(qpcR:::cbind.na(poorPAM, poorAGNES,poorDIANA))
+mal_Clus
+```
+
+#### ANEXO 10: Matriz de identidad y matriz singular
+
+```{r echo=FALSE, message=FALSE}
+#MATRIZ DE IDENTIDAD
+cortest.bartlett(corMatrix,n=nrow(data_af))$p.value>0.05
+#MATRIZ SINGULAR
+is.singular.matrix(corMatrix)
+```
+
+#### ANEXO 11: Nivel de variación de las variables consideradaas
+
+```{r echo=FALSE, message=FALSE}
+print(resfa$loadings)
+```
+
+#### ANEXO 12: Nivel de aporte de las variables al nuevo indicador
+```{r, message=FALSE, echo=FALSE}
+sort(resfa$communality)
+```
+
+
+#### ANEXO 13: test de correlaciónb de las variables de forma indiviual
+```{r message=FALSE, echo=FALSE}
+allParamCFA[allParamCFA$op=="=~",]
+```
+
+
+#### ANEXO 14: Test de chisquare
+```{r message=FALSE, echo=FALSE}
+#CHISQUARE
+allFitCFA[c("chisq", "df", "pvalue")] # pvalue>0.05
+```
+
+#### ANEXO 15: Test del índice de Tucker Lewi
+```{r message=FALSE, echo=FALSE}
+allFitCFA$tli # > 0.90
+
+```
+
+#### ANEXO 16: Test de raíz del error cuadrático
+```{r message=FALSE, echo=FALSE}
+allFitCFA[c('rmsea.ci.lower','rmsea' ,'rmsea.ci.upper')] # 0.05 en el Int de Conf
+
+```
+
+
+
+
